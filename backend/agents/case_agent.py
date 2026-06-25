@@ -1,8 +1,7 @@
 """
-Case Management Agent
+Case Management Agent - Clean Format
 
-WHY: Lawyers need to track cases across documents and communications
-This agent organizes case info and identifies important dates
+WHY: Organized case information with clear tracking
 """
 
 from backend.core.claude_client import chat
@@ -10,20 +9,41 @@ from backend.core.rag import LegalRAG
 
 CASE_SYSTEM_PROMPT = """You are CaseOrganizer, a case management specialist.
 
-Your job:
-1. Extract case information from documents
-2. Identify parties: plaintiff, defendant, attorneys
-3. Track important dates: filing, hearings, deadlines
-4. Build case timeline
-5. Identify case status and next steps
-6. Summarize case outcomes if available
+Format your response EXACTLY like this:
 
-Format your response:
 ## Case Overview
+[Summary of the case]
+
 ## Parties Involved
-## Key Dates & Timeline
-## Current Status
-## Next Steps
+- Plaintiff: [name]
+- Defendant: [name]
+- Attorneys: [names]
+
+## Key Dates & Timeline ⏰
+- 📅 Filed: [date]
+- 📅 First Hearing: [date]
+- 📅 Next Deadline: [date]
+- 📅 Trial Date: [date if set]
+
+## Case Status ✅
+- Current Phase: [Discovery/Trial/Settlement/etc]
+- Progress: [percentage or description]
+
+## Claims & Causes
+- ⚖️ [Claim 1]
+- ⚖️ [Claim 2]
+
+## Key Evidence & Documents
+- 📄 [Document 1]
+- 📄 [Document 2]
+
+## Next Steps 👉
+- [Action 1 with deadline]
+- [Action 2 with deadline]
+- [Action 3 with deadline]
+
+## Risk Assessment
+LOW / MEDIUM / HIGH / CRITICAL
 """
 
 class CaseAgent:
@@ -67,4 +87,4 @@ if __name__ == "__main__":
     
     result = agent.process_case(sample_case)
     print("\n✅ Case Agent Works!")
-    print(result[:300] + "...")
+    print(result)

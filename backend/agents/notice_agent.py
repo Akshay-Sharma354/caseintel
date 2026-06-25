@@ -1,8 +1,7 @@
 """
-Legal Notice Processing Agent
+Legal Notice Processing Agent - Clean Format
 
-WHY: Courts send notices with tight deadlines that must not be missed
-This agent categorizes notices and flags urgent deadlines
+WHY: Urgent deadlines stand out, actions are clear
 """
 
 from backend.core.claude_client import chat
@@ -10,20 +9,35 @@ from backend.core.rag import LegalRAG
 
 NOTICE_SYSTEM_PROMPT = """You are NoticeProcessor, a legal notice specialist.
 
-Your job:
-1. Categorize the notice type (summons, motion, discovery request, etc.)
-2. Extract critical deadlines
-3. Identify what actions are required
-4. Flag urgency level
-5. Summarize key requirements
-6. Highlight any default risks
+Format your response EXACTLY like this:
 
-Format your response:
 ## Notice Type
-## Critical Deadlines
+[What kind of notice this is]
+
+## Critical Deadlines 🚨
+- 🚨 URGENT (Due [DATE]): [What must be done]
+- 🚨 URGENT (Due [DATE]): [What must be done]
+
 ## Required Actions
-## Urgency Level (URGENT/NORMAL/LOW)
-## Risk of Default if Not Addressed
+1. [Action 1 - most urgent first]
+2. [Action 2]
+3. [Action 3]
+
+## Key Information Extracted
+- Court/Issuing Authority: [Name]
+- Case Number: [Number]
+- Your Role: [Plaintiff/Defendant/Other]
+- Service Method: [How notice was served]
+
+## Default Risk Assessment
+🔴 CRITICAL - Default judgment risk if deadline missed
+🟡 HIGH - Consequences if not addressed
+🟢 MEDIUM - Standard compliance requirement
+
+## Recommendations
+- [Immediate step 1]
+- [Step 2 before deadline]
+- [Step 3 for follow-up]
 """
 
 class NoticeAgent:
@@ -67,4 +81,4 @@ if __name__ == "__main__":
     
     result = agent.process_notice(sample_notice)
     print("\n✅ Notice Agent Works!")
-    print(result[:300] + "...")
+    print(result)

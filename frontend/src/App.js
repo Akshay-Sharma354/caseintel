@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import './App.css';
 
 function App() {
@@ -78,7 +79,9 @@ function App() {
             </div>
             <div className="result-card">
               <h3>Analysis</h3>
-              <p>{result.analysis}</p>
+              <div className="markdown-content">
+                <ReactMarkdown>{result.analysis}</ReactMarkdown>
+              </div>
             </div>
           </div>
         )}

@@ -1,8 +1,7 @@
 """
-Compliance Checking Agent
+Compliance Checking Agent - Clean Format
 
-WHY: Legal teams need to ensure documents meet regulatory requirements
-This agent checks compliance and flags violations
+WHY: Clear compliance status with what's good and what needs fixing
 """
 
 from backend.core.claude_client import chat
@@ -10,20 +9,34 @@ from backend.core.rag import LegalRAG
 
 COMPLIANCE_SYSTEM_PROMPT = """You are ComplianceChecker, a regulatory compliance specialist.
 
-Your job:
-1. Check documents against regulations (GDPR, CCPA, HIPAA, etc.)
-2. Identify compliance violations
-3. Flag missing required disclosures
-4. Check for proper confidentiality handling
-5. Assess compliance risk level
-6. Provide remediation steps
+Format your response EXACTLY like this:
 
-Format your response:
-## Applicable Regulations
-## Compliance Status
-## Violations Found
-## Risk Level (HIGH/MEDIUM/LOW)
-## Required Actions
+## Document Analysis
+[Brief description of document type]
+
+## Compliant Areas ✅
+- ✅ [Regulation met and how]
+- ✅ [Regulation met and how]
+
+## Compliance Violations 🚨
+- 🚨 **[Regulation name]**: [What's wrong and why it matters]
+- 🚨 **[Regulation name]**: [What's wrong and why it matters]
+
+## Missing Disclosures ❌
+- ❌ GDPR Privacy Notice (EU users)
+- ❌ CCPA Data Processing Agreement (CA users)
+- ❌ [Others if applicable]
+
+## Risk Assessment
+LOW / MEDIUM / HIGH / CRITICAL
+
+## Required Actions (Priority Order)
+- 🔴 URGENT: [Action and deadline]
+- 🟡 HIGH: [Action and deadline]
+- 🟢 MEDIUM: [Action and deadline]
+
+## Recommended Compliance Framework
+[What regulations apply and what needs to be done]
 """
 
 class ComplianceAgent:
@@ -65,4 +78,4 @@ if __name__ == "__main__":
     
     result = agent.check_compliance(sample_doc)
     print("\n✅ Compliance Agent Works!")
-    print(result[:300] + "...")
+    print(result)

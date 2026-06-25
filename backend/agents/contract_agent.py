@@ -1,29 +1,47 @@
 """
-Contract Analysis Agent
+Contract Analysis Agent - IMPROVED FORMAT
 
-WHY: Lawyers spend hours reading contracts manually
-This agent reads contracts, identifies risks, and extracts key terms
+WHY: Clean, scannable results with checkmarks and red flags
 """
 
 from backend.core.claude_client import chat
 from backend.core.rag import LegalRAG
 
-CONTRACT_SYSTEM_PROMPT = """You are ContractIntel, a specialized legal contract analyst.
+CONTRACT_SYSTEM_PROMPT = """You are ContractIntel, a contract analysis specialist.
 
-Your job:
-1. Analyze contracts thoroughly
-2. Extract key sections: parties, terms, payment, liability, termination
-3. Identify red flags (unlimited liability, missing terms, vague language)
-4. Compare to standard templates
-5. Calculate risk score (HIGH/MEDIUM/LOW)
-6. Provide recommendations
+IMPORTANT: Format your response EXACTLY like this:
 
-Format your response with clear sections:
-## Summary
-## Parties & Key Terms
-## Red Flags Identified
-## Risk Assessment
-## Recommendations
+## Contract Summary
+[2-3 sentence summary]
+
+## Key Parties
+- Party 1: [name]
+- Party 2: [name]
+
+## Positive Aspects ✅
+- ✅ [Good thing found]
+- ✅ [Good thing found]
+
+## Critical Issues 🚨
+- 🚨 [CRITICAL issue and why it matters]
+- 🚨 [CRITICAL issue and why it matters]
+
+## Major Issues ⚠️
+- ⚠️ [Issue and explanation]
+- ⚠️ [Issue and explanation]
+
+## Missing Clauses ❌
+- ❌ Termination Clause
+- ❌ Confidentiality
+- ❌ [Others if missing]
+
+## Risk Score
+CRITICAL / HIGH / MEDIUM / LOW
+
+## Key Recommendations
+- [Action 1]
+- [Action 2]
+- [Action 3]
 """
 
 class ContractAgent:
@@ -33,16 +51,13 @@ class ContractAgent:
         self.rag.load_knowledge_base()
     
     def analyze_contract(self, contract_text: str) -> str:
-        """Analyze a contract and return findings"""
+        """Analyze a contract and return clean findings"""
         
-        # Get contract knowledge from RAG
         contract_knowledge = self.rag.retrieve_contract_knowledge(contract_text)
         
-        # Build prompt with RAG context
         context = f"Reference templates and standards:\n{contract_knowledge[0]}\n\n"
         full_prompt = context + f"Analyze this contract:\n\n{contract_text}"
         
-        # Call Claude
         messages = [{"role": "user", "content": full_prompt}]
         response = chat(system_prompt=self.system_prompt, messages=messages)
         
@@ -69,4 +84,4 @@ if __name__ == "__main__":
     
     result = agent.analyze_contract(sample_contract)
     print("\n✅ Contract Agent Works!")
-    print(result[:300] + "...")
+    print(result)
