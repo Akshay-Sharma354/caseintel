@@ -1,0 +1,10 @@
+SERVICE AGREEMENT
+
+Parties: TechCorp Inc and ClientCo LLC
+
+Terms:
+- Duration: 1 year
+- Services: Software development
+- Payment: $50,000 per month
+- Liability: Unlimited
+- No termination clause
