@@ -26,7 +26,7 @@ function App() {
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('http://localhost:8000/analyze', {
+      const response = await fetch('https://caseintel-u3yl.onrender.com/analyze', {
         method: 'POST',
         body: formData,
       });
