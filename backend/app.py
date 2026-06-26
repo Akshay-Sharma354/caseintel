@@ -3,13 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import io
 import base64
 import pdfplumber
-from pdf2image import convert_from_bytes
+import fitz
 from docx import Document
 from PIL import Image
 from backend.agents.orchestrator import Orchestrator
 from backend.core.claude_client import client
-import os
-os.environ['PATH'] = '/opt/homebrew/bin:' + os.environ.get('PATH', '')
+
 app = FastAPI(
     title="CaseIntel API",
     description="Multi-agent legal AI system with Vision support",
@@ -75,6 +74,19 @@ def extract_text_from_pdf(content: bytes) -> str:
     except:
         return None
 
+def extract_image_from_pdf_pymupdf(content: bytes) -> str:
+    try:
+        doc = fitz.open(stream=content, filetype="pdf")
+        if len(doc) > 0:
+            page = doc[0]
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+            img_data = pix.tobytes("ppm")
+            img = Image.open(io.BytesIO(img_data))
+            return image_to_base64(img)
+    except Exception as e:
+        print(f"PyMuPDF error: {e}")
+    return None
+
 def is_scanned_pdf(content: bytes) -> bool:
     text = extract_text_from_pdf(content)
     return text is None or len(text.strip()) < 50
@@ -93,26 +105,20 @@ async def analyze_document(file: UploadFile = File(...)):
         
         if filename.endswith('.pdf'):
             if is_scanned_pdf(content):
-                print("📸 Scanned PDF detected!")
-                images = convert_from_bytes(content, first_page=1, last_page=1)
-                if images:
-                    image_base64 = image_to_base64(images[0])
+                print("📸 Scanned PDF - using Vision!")
+                image_base64 = extract_image_from_pdf_pymupdf(content)
             else:
-                print("📄 Text PDF detected!")
+                print("📄 Text PDF - extracting text!")
                 document_text = extract_text_from_pdf(content)
-        
         elif filename.endswith('.docx'):
             doc = Document(io.BytesIO(content))
             document_text = "\n".join([p.text for p in doc.paragraphs])
-        
         elif filename.endswith('.txt'):
             document_text = content.decode("utf-8")
-        
         elif filename.endswith(('.jpg', '.jpeg', '.png')):
-            print("🖼️ Image detected!")
+            print("🖼️ Image - using Vision!")
             image = Image.open(io.BytesIO(content))
             image_base64 = image_to_base64(image)
-        
         else:
             raise ValueError("Unsupported file type")
         
@@ -139,7 +145,7 @@ async def analyze_document(file: UploadFile = File(...)):
         raise ValueError("No content extracted")
     
     except Exception as e:
-        print(f"🔴 ERROR: {str(e)}")
+        print(f"ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
@@ -153,7 +159,7 @@ def get_available_agents():
             {"name": "Compliance Agent", "type": "COMPLIANCE", "description": "Checks compliance"},
             {"name": "Notice Agent", "type": "NOTICE", "description": "Processes notices"}
         ],
-        "vision_support": "✅ Scanned PDFs & Images"
+        "vision_support": "✅ Scanned PDFs via PyMuPDF + Claude Vision"
     }
 
 @app.get("/health")
