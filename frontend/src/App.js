@@ -68,16 +68,6 @@ function App() {
     }
   };
 
-  const getDocumentIcon = () => {
-    if (!file) return '📄';
-    const name = file.name.toLowerCase();
-    if (name.endsWith('.pdf')) return '📕';
-    if (name.endsWith('.docx')) return '📗';
-    if (name.endsWith('.txt')) return '📝';
-    if (name.match(/\.(jpg|jpeg|png|gif)$/)) return '🖼️';
-    return '📄';
-  };
-
   const getAgentIcon = () => {
     if (!result) return null;
     const type = result.document_type?.toUpperCase() || '';
@@ -90,30 +80,28 @@ function App() {
 
   return (
     <div className="App">
-      <div className="background-animation"></div>
-      
-      <div className="container">
-        {/* Hero Section */}
-        <div className="hero-section">
-          <div className="hero-badge">AI-Powered Legal Analysis</div>
-          <h1 className="hero-title">CaseIntel</h1>
-          <p className="hero-subtitle">
-            Professional legal document analysis powered by advanced AI. 
-            Contract review, compliance checks, case management, and more.
-          </p>
+      <nav className="navbar">
+        <div className="nav-container">
+          <div className="nav-logo">
+            <span className="logo-icon">⚖️</span>
+            <span className="logo-text">CaseIntel</span>
+          </div>
+          <p className="nav-tagline">AI-powered legal document analysis</p>
         </div>
+      </nav>
 
-        {/* Main Card */}
-        <div className="main-card">
+      <div className="main-content">
+        <div className="content-container">
           {!result ? (
             <>
-              {/* Upload Section */}
-              <div className="upload-container">
-                <div className="upload-header">
-                  <h2>📤 Upload Your Document</h2>
-                  <p className="upload-hint">Drag & drop or click to select</p>
-                </div>
+              <div className="hero">
+                <h1 className="hero-title">Upload your legal documents</h1>
+                <p className="hero-subtitle">
+                  Get professional analysis in seconds. Contract review, compliance checks, case management, and more.
+                </p>
+              </div>
 
+              <div className="upload-card">
                 <div
                   className={`upload-zone ${dragActive ? 'active' : ''} ${file ? 'has-file' : ''}`}
                   onDragEnter={handleDrag}
@@ -129,41 +117,27 @@ function App() {
                     className="file-input"
                   />
                   <label htmlFor="file-input" className="upload-label">
-                    <div className="upload-icon">
-                      {file ? getDocumentIcon() : '📄'}
-                    </div>
-                    <div className="upload-text">
+                    <div className="upload-content">
                       {file ? (
                         <>
-                          <span className="file-selected">✓ File Selected</span>
-                          <span className="file-name">{file.name}</span>
+                          <div className="upload-icon-success">✓</div>
+                          <p className="upload-text-success">{file.name}</p>
+                          <p className="upload-size">{(file.size / 1024).toFixed(1)} KB</p>
                         </>
                       ) : (
                         <>
-                          <span className="upload-primary">Drag files here or click to browse</span>
-                          <span className="upload-secondary">Supports: PDF, DOCX, TXT, Images</span>
+                          <div className="upload-icon">📄</div>
+                          <p className="upload-text">Drag and drop your file here</p>
+                          <p className="upload-hint">or click to browse</p>
+                          <p className="upload-formats">PDF, DOCX, TXT, or images</p>
                         </>
                       )}
                     </div>
                   </label>
                 </div>
 
-                {/* File Info */}
-                {file && (
-                  <div className="file-info">
-                    <span className="file-info-item">
-                      📋 {file.type || 'Document'}
-                    </span>
-                    <span className="file-info-item">
-                      💾 {(file.size / 1024).toFixed(1)} KB
-                    </span>
-                  </div>
-                )}
+                {error && <div className="error-message">{error}</div>}
 
-                {/* Error */}
-                {error && <div className="error-message">❌ {error}</div>}
-
-                {/* Analyze Button */}
                 <button
                   onClick={handleAnalyze}
                   disabled={!file || loading}
@@ -171,95 +145,89 @@ function App() {
                 >
                   {loading ? (
                     <>
-                      <span className="spinner-small"></span>
+                      <span className="spinner"></span>
                       Analyzing...
                     </>
                   ) : (
                     <>
-                      🔍 Analyze Document
+                      <span className="button-icon">↑</span>
+                      Analyze Document
                     </>
                   )}
                 </button>
               </div>
 
-              {/* Features Grid */}
-              <div className="features-grid">
-                <div className="feature-item">
+              <div className="features">
+                <div className="feature">
                   <span className="feature-icon">⚖️</span>
-                  <span className="feature-name">Contract Analysis</span>
+                  <span className="feature-label">Contracts</span>
                 </div>
-                <div className="feature-item">
+                <div className="feature">
                   <span className="feature-icon">🏛️</span>
-                  <span className="feature-name">Case Management</span>
+                  <span className="feature-label">Cases</span>
                 </div>
-                <div className="feature-item">
+                <div className="feature">
                   <span className="feature-icon">✅</span>
-                  <span className="feature-name">Compliance Check</span>
+                  <span className="feature-label">Compliance</span>
                 </div>
-                <div className="feature-item">
+                <div className="feature">
                   <span className="feature-icon">📋</span>
-                  <span className="feature-name">Notice Analysis</span>
+                  <span className="feature-label">Notices</span>
                 </div>
               </div>
             </>
           ) : (
             <>
-              {/* Results Section */}
-              <div className="results-container">
-                <div className="results-header">
-                  <div className="results-title-section">
-                    <span className="result-agent-icon">{getAgentIcon()}</span>
-                    <div>
-                      <h2>Analysis Complete</h2>
-                      <p className="result-agent-type">{result.agent_used}</p>
-                    </div>
+              <div className="results-header">
+                <button
+                  className="back-button"
+                  onClick={() => {
+                    setResult(null);
+                    setFile(null);
+                  }}
+                >
+                  ← Back
+                </button>
+                <div className="result-title">
+                  <span className="result-icon">{getAgentIcon()}</span>
+                  <div>
+                    <h2>Analysis Complete</h2>
+                    <p className="result-agent">{result.agent_used}</p>
                   </div>
-                  <button 
-                    className="new-analysis-btn"
-                    onClick={() => {
-                      setResult(null);
-                      setFile(null);
-                      setError(null);
-                    }}
-                  >
-                    ➕ New Analysis
-                  </button>
                 </div>
+              </div>
 
-                <div className="markdown-content analysis-result">
+              <div className="results-card">
+                <div className="markdown-content">
                   <ReactMarkdown>{result.analysis}</ReactMarkdown>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="result-actions">
-                  <button 
-                    className="action-btn copy-btn"
+                  <button
+                    className="action-button"
                     onClick={() => {
                       navigator.clipboard.writeText(result.analysis);
                       alert('Copied to clipboard!');
                     }}
                   >
-                    📋 Copy Analysis
+                    Copy
                   </button>
-                  <button 
-                    className="action-btn share-btn"
-                    onClick={() => {
-                      alert('Share feature coming soon! Use the copy button for now.');
-                    }}
+                  <button
+                    className="action-button secondary"
+                    onClick={() => alert('Share feature coming soon!')}
                   >
-                    🔗 Share
+                    Share
                   </button>
                 </div>
               </div>
             </>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="footer">
-          <p>CaseIntel © 2024 | AI-Powered Legal Analysis</p>
-        </div>
       </div>
+
+      <footer className="footer">
+        <p>© 2024 CaseIntel. AI-powered legal analysis.</p>
+      </footer>
     </div>
   );
 }
