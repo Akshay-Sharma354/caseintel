@@ -98,11 +98,16 @@ ANALYSIS FORMAT - FOLLOW EXACTLY:
 
 IMPORTANT: Be strategic and actionable. Provide specific legal analysis and timeline."""
 
-    def analyze(self, document_text: str) -> dict:
+    def analyze_notice(self, document_text: str) -> str:
         response = client.messages.create(
             model="claude-opus-4-6",
             max_tokens=2048,
             system=self.system_prompt,
-            messages=[{"role": "user", "content": f"Analyze this legal notice:\n\n{document_text}"}]
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Analyze this legal notice:\n\n{document_text}"
+                }
+            ]
         )
-        return {"agent": "Notice Agent", "analysis": response.content[0].text}
+        return response.content[0].text

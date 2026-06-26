@@ -78,11 +78,16 @@ ANALYSIS FORMAT - FOLLOW EXACTLY:
 
 IMPORTANT: Reference specific laws and potential penalties. Be clear about jurisdiction."""
 
-    def analyze(self, document_text: str) -> dict:
+    def analyze_compliance(self, document_text: str) -> str:
         response = client.messages.create(
             model="claude-opus-4-6",
             max_tokens=2048,
             system=self.system_prompt,
-            messages=[{"role": "user", "content": f"Analyze compliance requirements for this document:\n\n{document_text}"}]
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Analyze compliance requirements for this document:\n\n{document_text}"
+                }
+            ]
         )
-        return {"agent": "Compliance Agent", "analysis": response.content[0].text}
+        return response.content[0].text

@@ -72,11 +72,16 @@ ANALYSIS FORMAT - FOLLOW EXACTLY:
 
 IMPORTANT: Be specific with dates, amounts, and legal theories. Use clear case management language."""
 
-    def analyze(self, document_text: str) -> dict:
+    def analyze_case(self, document_text: str) -> str:
         response = client.messages.create(
             model="claude-opus-4-6",
             max_tokens=2048,
             system=self.system_prompt,
-            messages=[{"role": "user", "content": f"Analyze this case information:\n\n{document_text}"}]
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Analyze this case information:\n\n{document_text}"
+                }
+            ]
         )
-        return {"agent": "Case Agent", "analysis": response.content[0].text}
+        return response.content[0].text

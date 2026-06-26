@@ -1,19 +1,16 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import mimetypes
+import fitz
+import pdfplumber
+from PIL import Image
 import io
 import base64
-import pdfplumber
-import fitz
 from docx import Document
-from PIL import Image
 from backend.agents.orchestrator import Orchestrator
-from backend.core.claude_client import client
 
-app = FastAPI(
-    title="CaseIntel API",
-    description="Multi-agent legal AI system with Vision support",
-    version="2.0.0"
-)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,20 +22,52 @@ app.add_middleware(
 
 orchestrator = Orchestrator()
 
-def image_to_base64(image_obj) -> str:
-    img_bytes = io.BytesIO()
-    image_obj.save(img_bytes, format='JPEG', quality=85)
-    img_bytes.seek(0)
-    return base64.standard_b64encode(img_bytes.getvalue()).decode('utf-8')
+def image_to_base64(image: Image.Image) -> str:
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+    return base64.standard_b64encode(buffer.read()).decode()
 
-def analyze_with_vision(image_base64: str) -> str:
-    system_prompt = """You are ContractIntel analyzing a legal document.
-Format with: ## Summary, ## Key Parties, ## Critical Issues, ## Missing Clauses, ## Risk Score"""
+def extract_text_from_docx(file_bytes: bytes) -> str:
+    try:
+        doc = Document(io.BytesIO(file_bytes))
+        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        return text if text.strip() else "ERROR: No text found in DOCX file"
+    except Exception as e:
+        return f"ERROR: Failed to extract text from DOCX: {str(e)}"
+
+def extract_text_from_pdf(file_bytes: bytes) -> str:
+    try:
+        text = ""
+        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+        return text if text.strip() else None
+    except Exception as e:
+        return None
+
+def is_scanned_pdf(file_bytes: bytes) -> bool:
+    text = extract_text_from_pdf(file_bytes)
+    return text is None or len(text.strip()) < 50
+
+def extract_image_from_pdf_pymupdf(file_bytes: bytes, page_num: int = 0) -> Image.Image:
+    try:
+        pdf_document = fitz.open(stream=file_bytes, filetype="pdf")
+        page = pdf_document[page_num]
+        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+        img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+        return img
+    except Exception as e:
+        raise Exception(f"Failed to extract image from PDF: {str(e)}")
+
+def analyze_with_vision(image_base64: str, document_type: str) -> dict:
+    from backend.core.claude_client import client
     
     response = client.messages.create(
         model="claude-opus-4-6",
         max_tokens=2048,
-        system=system_prompt,
         messages=[
             {
                 "role": "user",
@@ -47,124 +76,146 @@ Format with: ## Summary, ## Key Parties, ## Critical Issues, ## Missing Clauses,
                         "type": "image",
                         "source": {
                             "type": "base64",
-                            "media_type": "image/jpeg",
-                            "data": image_base64
-                        }
+                            "media_type": "image/png",
+                            "data": image_base64,
+                        },
                     },
                     {
                         "type": "text",
-                        "text": "Analyze this document completely."
+                        "text": f"Analyze this {document_type} document as a legal expert."
                     }
-                ]
+                ],
             }
-        ]
+        ],
     )
     
     return response.content[0].text
 
-def extract_text_from_pdf(content: bytes) -> str:
-    try:
-        document_text = ""
-        with pdfplumber.open(io.BytesIO(content)) as pdf:
-            for page in pdf.pages:
-                extracted = page.extract_text()
-                if extracted:
-                    document_text += extracted + "\n"
-        return document_text if document_text.strip() else None
-    except:
-        return None
-
-def extract_image_from_pdf_pymupdf(content: bytes) -> str:
-    try:
-        doc = fitz.open(stream=content, filetype="pdf")
-        if len(doc) > 0:
-            page = doc[0]
-            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-            img_data = pix.tobytes("ppm")
-            img = Image.open(io.BytesIO(img_data))
-            return image_to_base64(img)
-    except Exception as e:
-        print(f"PyMuPDF error: {e}")
-    return None
-
-def is_scanned_pdf(content: bytes) -> bool:
-    text = extract_text_from_pdf(content)
-    return text is None or len(text.strip()) < 50
-
-@app.get("/")
-def read_root():
-    return {"status": "CaseIntel API running!", "version": "2.0.0", "vision_support": True}
-
 @app.post("/analyze")
 async def analyze_document(file: UploadFile = File(...)):
     try:
-        content = await file.read()
-        filename = file.filename.lower()
-        document_text = None
-        image_base64 = None
+        print(f"DEBUG: Received file: {file.filename}")
+        file_bytes = await file.read()
+        file_name = file.filename.lower()
+        print(f"DEBUG: File type: {file_name}")
         
-        if filename.endswith('.pdf'):
-            if is_scanned_pdf(content):
-                print("📸 Scanned PDF - using Vision!")
-                image_base64 = extract_image_from_pdf_pymupdf(content)
-            else:
-                print("📄 Text PDF - extracting text!")
-                document_text = extract_text_from_pdf(content)
-        elif filename.endswith('.docx'):
-            doc = Document(io.BytesIO(content))
-            document_text = "\n".join([p.text for p in doc.paragraphs])
-        elif filename.endswith('.txt'):
-            document_text = content.decode("utf-8")
-        elif filename.endswith(('.jpg', '.jpeg', '.png')):
-            print("🖼️ Image - using Vision!")
-            image = Image.open(io.BytesIO(content))
-            image_base64 = image_to_base64(image)
-        else:
-            raise ValueError("Unsupported file type")
-        
-        if image_base64:
-            analysis = analyze_with_vision(image_base64)
-            return {
-                "status": "success",
-                "method": "vision",
-                "document_type": "Legal Document (Vision)",
-                "agent_used": "Claude Vision API",
-                "analysis": analysis
-            }
-        
-        if document_text and document_text.strip():
+        if file_name.endswith('.docx'):
+            print("DEBUG: Processing DOCX file")
+            document_text = extract_text_from_docx(file_bytes)
+            
+            if document_text.startswith("ERROR"):
+                print(f"DEBUG: DOCX extraction error: {document_text}")
+                return JSONResponse({
+                    "error": document_text,
+                    "agent_used": "Error Handler"
+                }, status_code=400)
+            
+            print(f"DEBUG: Extracted text length: {len(document_text)}")
             result = orchestrator.process_document(document_text)
+            print(f"DEBUG: Orchestrator result: {result}")
             return {
-                "status": "success",
-                "method": "text",
-                "document_type": result["document_type"],
-                "agent_used": result["agent_used"],
-                "analysis": result["analysis"]
+                "document_type": "DOCX",
+                "agent_used": result.get("agent_type", "Unknown"),
+                "analysis": result.get("analysis", "No analysis available")
             }
         
-        raise ValueError("No content extracted")
+        elif file_name.endswith('.pdf'):
+            print("DEBUG: Processing PDF file")
+            if is_scanned_pdf(file_bytes):
+                print("DEBUG: Detected scanned PDF")
+                try:
+                    image = extract_image_from_pdf_pymupdf(file_bytes)
+                    image_base64 = image_to_base64(image)
+                    analysis = analyze_with_vision(image_base64, "PDF")
+                    
+                    return {
+                        "document_type": "PDF (Scanned)",
+                        "agent_used": "Claude Vision API",
+                        "analysis": analysis
+                    }
+                except Exception as e:
+                    print(f"DEBUG: Vision API error: {str(e)}")
+                    return JSONResponse({
+                        "error": f"Failed to analyze scanned PDF: {str(e)}",
+                        "agent_used": "Error Handler"
+                    }, status_code=400)
+            else:
+                print("DEBUG: Detected text PDF")
+                document_text = extract_text_from_pdf(file_bytes)
+                result = orchestrator.process_document(document_text)
+                
+                return {
+                    "document_type": "PDF (Text)",
+                    "agent_used": result.get("agent_type", "Unknown"),
+                    "analysis": result.get("analysis", "No analysis available")
+                }
+        
+        elif file_name.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+            print("DEBUG: Processing image file")
+            try:
+                image = Image.open(io.BytesIO(file_bytes))
+                image_base64 = image_to_base64(image)
+                analysis = analyze_with_vision(image_base64, "Image")
+                
+                return {
+                    "document_type": "Image",
+                    "agent_used": "Claude Vision API",
+                    "analysis": analysis
+                }
+            except Exception as e:
+                print(f"DEBUG: Image processing error: {str(e)}")
+                return JSONResponse({
+                    "error": f"Failed to analyze image: {str(e)}",
+                    "agent_used": "Error Handler"
+                }, status_code=400)
+        
+        elif file_name.endswith('.txt'):
+            print("DEBUG: Processing TXT file")
+            try:
+                document_text = file_bytes.decode('utf-8')
+                result = orchestrator.process_document(document_text)
+                
+                return {
+                    "document_type": "TXT",
+                    "agent_used": result.get("agent_type", "Unknown"),
+                    "analysis": result.get("analysis", "No analysis available")
+                }
+            except Exception as e:
+                print(f"DEBUG: TXT processing error: {str(e)}")
+                return JSONResponse({
+                    "error": f"Failed to read TXT file: {str(e)}",
+                    "agent_used": "Error Handler"
+                }, status_code=400)
+        
+        else:
+            return JSONResponse({
+                "error": f"Unsupported file type: {file_name}. Supported: PDF, DOCX, TXT, JPG, PNG",
+                "agent_used": "Error Handler"
+            }, status_code=400)
     
     except Exception as e:
-        print(f"ERROR: {str(e)}")
         import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
-
-@app.get("/agents")
-def get_available_agents():
-    return {
-        "agents": [
-            {"name": "Contract Agent", "type": "CONTRACT", "description": "Analyzes contracts"},
-            {"name": "Case Agent", "type": "CASE", "description": "Organizes cases"},
-            {"name": "Compliance Agent", "type": "COMPLIANCE", "description": "Checks compliance"},
-            {"name": "Notice Agent", "type": "NOTICE", "description": "Processes notices"}
-        ],
-        "vision_support": "✅ Scanned PDFs via PyMuPDF + Claude Vision"
-    }
+        error_trace = traceback.format_exc()
+        print(f"ERROR TRACEBACK:\n{error_trace}")
+        return JSONResponse({
+            "error": f"Unexpected error: {str(e)}",
+            "agent_used": "Error Handler"
+        }, status_code=500)
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "vision_support": True}
+    return {"status": "ok", "service": "CaseIntel Backend"}
+
+@app.get("/agents")
+def get_agents():
+    return {
+        "agents": [
+            {"name": "Contract Agent", "icon": "⚖️", "description": "Analyzes contracts and agreements"},
+            {"name": "Case Agent", "icon": "🏛️", "description": "Manages litigation and case information"},
+            {"name": "Compliance Agent", "icon": "✅", "description": "Checks regulatory compliance"},
+            {"name": "Notice Agent", "icon": "📋", "description": "Analyzes legal notices and demands"}
+        ]
+    }
 
 if __name__ == "__main__":
     import uvicorn

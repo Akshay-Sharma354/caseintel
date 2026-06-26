@@ -61,11 +61,16 @@ ANALYSIS FORMAT - FOLLOW EXACTLY:
 
 IMPORTANT: Be specific about amounts, dates, and legal implications. Use business language."""
 
-    def analyze(self, document_text: str) -> dict:
+    def analyze_contract(self, document_text: str) -> str:
         response = client.messages.create(
             model="claude-opus-4-6",
             max_tokens=2048,
             system=self.system_prompt,
-            messages=[{"role": "user", "content": f"Analyze this contract:\n\n{document_text}"}]
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Analyze this contract:\n\n{document_text}"
+                }
+            ]
         )
-        return {"agent": "Contract Agent", "analysis": response.content[0].text}
+        return response.content[0].text
