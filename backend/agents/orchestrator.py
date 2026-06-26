@@ -12,9 +12,9 @@ class Orchestrator:
         self.notice_agent = NoticeAgent()
 
     def classify_document(self, text: str) -> str:
-        """Classify document type using Claude"""
+        """Classify document type using Claude Haiku (FAST!)"""
         response = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-haiku-4-5",
             max_tokens=50,
             system="You are a legal document classifier. Respond with ONLY one of these exact words: CONTRACT, CASE, COMPLIANCE, or NOTICE. No other text.",
             messages=[
