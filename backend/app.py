@@ -1,25 +1,21 @@
-"""
-CaseIntel FastAPI Backend
-
-WHY: Exposes agents via REST API
-- Frontend sends documents
-- Backend processes with agents
-- Returns analysis as JSON
-"""
-
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import json
+import io
+import base64
+import pdfplumber
+from pdf2image import convert_from_bytes
+from docx import Document
+from PIL import Image
 from backend.agents.orchestrator import Orchestrator
-
-# Initialize FastAPI app
+from backend.core.claude_client import client
+import os
+os.environ['PATH'] = '/opt/homebrew/bin:' + os.environ.get('PATH', '')
 app = FastAPI(
     title="CaseIntel API",
-    description="Multi-agent legal AI system",
-    version="1.0.0"
+    description="Multi-agent legal AI system with Vision support",
+    version="2.0.0"
 )
 
-# Enable CORS (allow frontend to call backend)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,72 +24,141 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize orchestrator
 orchestrator = Orchestrator()
+
+def image_to_base64(image_obj) -> str:
+    img_bytes = io.BytesIO()
+    image_obj.save(img_bytes, format='JPEG', quality=85)
+    img_bytes.seek(0)
+    return base64.standard_b64encode(img_bytes.getvalue()).decode('utf-8')
+
+def analyze_with_vision(image_base64: str) -> str:
+    system_prompt = """You are ContractIntel analyzing a legal document.
+Format with: ## Summary, ## Key Parties, ## Critical Issues, ## Missing Clauses, ## Risk Score"""
+    
+    response = client.messages.create(
+        model="claude-opus-4-6",
+        max_tokens=2048,
+        system=system_prompt,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": image_base64
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": "Analyze this document completely."
+                    }
+                ]
+            }
+        ]
+    )
+    
+    return response.content[0].text
+
+def extract_text_from_pdf(content: bytes) -> str:
+    try:
+        document_text = ""
+        with pdfplumber.open(io.BytesIO(content)) as pdf:
+            for page in pdf.pages:
+                extracted = page.extract_text()
+                if extracted:
+                    document_text += extracted + "\n"
+        return document_text if document_text.strip() else None
+    except:
+        return None
+
+def is_scanned_pdf(content: bytes) -> bool:
+    text = extract_text_from_pdf(content)
+    return text is None or len(text.strip()) < 50
 
 @app.get("/")
 def read_root():
-    """Health check endpoint"""
-    return {
-        "status": "CaseIntel API is running!",
-        "version": "1.0.0"
-    }
+    return {"status": "CaseIntel API running!", "version": "2.0.0", "vision_support": True}
 
 @app.post("/analyze")
 async def analyze_document(file: UploadFile = File(...)):
-    """Analyze a legal document"""
-    
     try:
         content = await file.read()
-        document_text = content.decode("utf-8")
+        filename = file.filename.lower()
+        document_text = None
+        image_base64 = None
         
-        result = orchestrator.process_document(document_text)
+        if filename.endswith('.pdf'):
+            if is_scanned_pdf(content):
+                print("📸 Scanned PDF detected!")
+                images = convert_from_bytes(content, first_page=1, last_page=1)
+                if images:
+                    image_base64 = image_to_base64(images[0])
+            else:
+                print("📄 Text PDF detected!")
+                document_text = extract_text_from_pdf(content)
         
-        return {
-            "status": "success",
-            "document_type": result["document_type"],
-            "agent_used": result["agent_used"],
-            "analysis": result["analysis"]
-        }
+        elif filename.endswith('.docx'):
+            doc = Document(io.BytesIO(content))
+            document_text = "\n".join([p.text for p in doc.paragraphs])
+        
+        elif filename.endswith('.txt'):
+            document_text = content.decode("utf-8")
+        
+        elif filename.endswith(('.jpg', '.jpeg', '.png')):
+            print("🖼️ Image detected!")
+            image = Image.open(io.BytesIO(content))
+            image_base64 = image_to_base64(image)
+        
+        else:
+            raise ValueError("Unsupported file type")
+        
+        if image_base64:
+            analysis = analyze_with_vision(image_base64)
+            return {
+                "status": "success",
+                "method": "vision",
+                "document_type": "Legal Document (Vision)",
+                "agent_used": "Claude Vision API",
+                "analysis": analysis
+            }
+        
+        if document_text and document_text.strip():
+            result = orchestrator.process_document(document_text)
+            return {
+                "status": "success",
+                "method": "text",
+                "document_type": result["document_type"],
+                "agent_used": result["agent_used"],
+                "analysis": result["analysis"]
+            }
+        
+        raise ValueError("No content extracted")
     
     except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Error processing document: {str(e)}"
-        )
+        print(f"🔴 ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
 
 @app.get("/agents")
 def get_available_agents():
-    """Get list of available agents"""
     return {
         "agents": [
-            {
-                "name": "Contract Agent",
-                "type": "CONTRACT",
-                "description": "Analyzes contracts and identifies risks"
-            },
-            {
-                "name": "Case Agent",
-                "type": "CASE",
-                "description": "Organizes case information and timelines"
-            },
-            {
-                "name": "Compliance Agent",
-                "type": "COMPLIANCE",
-                "description": "Checks regulatory compliance"
-            },
-            {
-                "name": "Notice Agent",
-                "type": "NOTICE",
-                "description": "Processes legal notices and deadlines"
-            }
-        ]
+            {"name": "Contract Agent", "type": "CONTRACT", "description": "Analyzes contracts"},
+            {"name": "Case Agent", "type": "CASE", "description": "Organizes cases"},
+            {"name": "Compliance Agent", "type": "COMPLIANCE", "description": "Checks compliance"},
+            {"name": "Notice Agent", "type": "NOTICE", "description": "Processes notices"}
+        ],
+        "vision_support": "✅ Scanned PDFs & Images"
     }
 
 @app.get("/health")
 def health_check():
-    """Health check for monitoring"""
-    return {"status": "healthy"}
+    return {"status": "healthy", "vision_support": True}
 
 if __name__ == "__main__":
     import uvicorn
