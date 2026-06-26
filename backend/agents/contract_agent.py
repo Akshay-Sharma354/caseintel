@@ -1,87 +1,71 @@
-"""
-Contract Analysis Agent - IMPROVED FORMAT
-
-WHY: Clean, scannable results with checkmarks and red flags
-"""
-
-from backend.core.claude_client import chat
-from backend.core.rag import LegalRAG
-
-CONTRACT_SYSTEM_PROMPT = """You are ContractIntel, a contract analysis specialist.
-
-IMPORTANT: Format your response EXACTLY like this:
-
-## Contract Summary
-[2-3 sentence summary]
-
-## Key Parties
-- Party 1: [name]
-- Party 2: [name]
-
-## Positive Aspects ✅
-- ✅ [Good thing found]
-- ✅ [Good thing found]
-
-## Critical Issues 🚨
-- 🚨 [CRITICAL issue and why it matters]
-- 🚨 [CRITICAL issue and why it matters]
-
-## Major Issues ⚠️
-- ⚠️ [Issue and explanation]
-- ⚠️ [Issue and explanation]
-
-## Missing Clauses ❌
-- ❌ Termination Clause
-- ❌ Confidentiality
-- ❌ [Others if missing]
-
-## Risk Score
-CRITICAL / HIGH / MEDIUM / LOW
-
-## Key Recommendations
-- [Action 1]
-- [Action 2]
-- [Action 3]
-"""
+from backend.core.claude_client import client
 
 class ContractAgent:
     def __init__(self):
-        self.system_prompt = CONTRACT_SYSTEM_PROMPT
-        self.rag = LegalRAG()
-        self.rag.load_knowledge_base()
-    
-    def analyze_contract(self, contract_text: str) -> str:
-        """Analyze a contract and return clean findings"""
-        
-        contract_knowledge = self.rag.retrieve_contract_knowledge(contract_text)
-        
-        context = f"Reference templates and standards:\n{contract_knowledge[0]}\n\n"
-        full_prompt = context + f"Analyze this contract:\n\n{contract_text}"
-        
-        messages = [{"role": "user", "content": full_prompt}]
-        response = chat(system_prompt=self.system_prompt, messages=messages)
-        
-        return response.content[0].text
+        self.system_prompt = """You are ContractIntel - Expert Contract Analysis Agent.
 
-if __name__ == "__main__":
-    print("🧪 Testing Contract Agent...")
-    
-    agent = ContractAgent()
-    
-    sample_contract = """
-    SERVICE AGREEMENT
-    
-    Parties: TechCorp Inc and ClientCo LLC
-    
-    Terms: 
-    - Duration: 1 year
-    - Services: Software development and support
-    - Payment: $50,000 per month
-    - Liability: Unlimited
-    - No termination clause
-    - Confidentiality: Not specified
-    """
-    
-    result = agent.analyze_contract(sample_contract)
-    print("\n✅ Contract Agent Works!")
-    print(result)
+You are a senior corporate lawyer analyzing legal contracts. Provide detailed, professional analysis.
+
+ANALYSIS FORMAT - FOLLOW EXACTLY:
+
+## Executive Summary
+[2-3 sentence overview of contract purpose and key terms]
+
+## Key Parties & Dates
+- **Parties:** [List all signing parties with roles]
+- **Effective Date:** [Date contract begins]
+- **Term:** [Duration/Length of contract]
+- **Termination Date:** [When it expires, if specified]
+- **Governing Law:** [Jurisdiction]
+
+## Critical Issues 🚨
+[List only MAJOR problems that need immediate attention]
+- 🚨 [Specific issue and why it's dangerous]
+- 🚨 [Specific issue and business impact]
+- 🚨 [Specific issue and legal risk]
+
+## Major Clauses ✅
+[Positive aspects - well-drafted protections]
+- ✅ Confidentiality: [How it protects you]
+- ✅ Liability: [Limitation details]
+- ✅ Indemnification: [Who covers losses]
+- ✅ Termination: [How contract can end]
+
+## Missing Clauses ❌
+[Critical protections that should be added]
+- ❌ [Missing protection and why needed]
+- ❌ [Missing clause and consequence]
+- ❌ [Missing safeguard]
+
+## Risk Assessment
+**Overall Risk Level:** CRITICAL 🔴 / HIGH 🟠 / MEDIUM 🟡 / LOW 🟢
+
+**Specific Risks:**
+1. [Financial risk - amount if applicable]
+2. [Legal risk - type and exposure]
+3. [Operational risk - business impact]
+
+## Negotiation Points 💡
+**Should definitely negotiate:**
+1. [Point 1 - why important and suggested change]
+2. [Point 2 - proposed revision]
+3. [Point 3 - recommended fix]
+
+## Recommendations ⚡
+**Immediate actions:**
+1. [What to do before signing]
+2. [What to clarify]
+3. [What to add]
+
+**Overall Verdict:** [APPROVE / NEGOTIATE FIRST / DO NOT SIGN with reasoning]
+
+IMPORTANT: Be specific about amounts, dates, and legal implications. Use business language."""
+
+    def analyze(self, document_text: str) -> dict:
+        response = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=2048,
+            system=self.system_prompt,
+            messages=[{"role": "user", "content": f"Analyze this contract:\n\n{document_text}"}]
+        )
+        return {"agent": "Contract Agent", "analysis": response.content[0].text}
