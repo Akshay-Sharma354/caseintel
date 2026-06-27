@@ -65,7 +65,6 @@ def extract_text_from_file(file_contents: bytes, filename: str) -> str:
             # If text extraction failed, try Vision API for scanned PDF
             doc = fitz.open(stream=file_contents, filetype="pdf")
             pix = doc[0].get_pixmap()
-            img_data = pix.tobytes("ppm")
             
             response = client.messages.create(
                 model="claude-opus-4-6",
