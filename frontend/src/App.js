@@ -84,8 +84,16 @@ function App() {
     setEmailSuccess(false);
 
     try {
-      const response = await fetch('https://caseintel-u3yl.onrender.com/send-email?email=' + encodeURIComponent(emailInput) + '&analysis=' + encodeURIComponent(result.analysis) + '&document_type=' + encodeURIComponent(result.document_type), {
+      const response = await fetch('https://caseintel-u3yl.onrender.com/send-email', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailInput,
+          analysis: result.analysis,
+          document_type: result.document_type,
+        }),
       });
 
       if (!response.ok) {
