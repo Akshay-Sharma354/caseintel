@@ -1,6 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -36,7 +35,7 @@ class EmailRequest(BaseModel):
 async def analyze(file: UploadFile = File(...)):
     try:
         contents = await file.read()
-        document_type, agent_used, analysis = orchestrator.process_document(contents, file.filename)
+        document_type, agent_used, analysis = orchestrator.process_document(contents)
         
         return {
             "document_type": document_type,
