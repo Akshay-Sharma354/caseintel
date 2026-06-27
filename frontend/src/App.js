@@ -1,8 +1,3 @@
-PERFECT!!! ✅ Now for App.js!
-
-🔧 STEP 2: App.js (Copy Feedback + Better Results)
-COPY THIS ENTIRE CODE:
-bashcat > ~/Desktop/caseintel/frontend/src/App.js << 'EOF'
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import './App.css';
@@ -34,7 +29,6 @@ function App() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setFile(e.dataTransfer.files[0]);
       setError(null);
@@ -53,23 +47,18 @@ function App() {
       setError('Please select a file first');
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const formData = new FormData();
       formData.append('file', file);
-
       const response = await fetch('https://caseintel-u3yl.onrender.com/analyze', {
         method: 'POST',
         body: formData,
       });
-
       if (!response.ok) {
         throw new Error('Failed to analyze document');
       }
-
       const data = await response.json();
       setResult(data);
     } catch (err) {
@@ -90,28 +79,22 @@ function App() {
       setEmailError('Please enter an email address');
       return;
     }
-
     setEmailLoading(true);
     setEmailError(null);
     setEmailSuccess(false);
-
     try {
       const response = await fetch('https://caseintel-u3yl.onrender.com/send-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: emailInput,
           analysis: result.analysis,
           document_type: result.document_type,
         }),
       });
-
       if (!response.ok) {
         throw new Error('Failed to send email');
       }
-
       const data = await response.json();
       if (data.success) {
         setEmailSuccess(true);
@@ -286,11 +269,8 @@ function App() {
                 <div className="email-modal-overlay" onClick={() => setShowEmailModal(false)}>
                   <div className="email-modal" onClick={(e) => e.stopPropagation()}>
                     <h3>Share Analysis via Email</h3>
-                    
                     {emailSuccess ? (
-                      <div className="email-success">
-                        ✅ Email sent successfully!
-                      </div>
+                      <div className="email-success">✅ Email sent successfully!</div>
                     ) : (
                       <>
                         <input
