@@ -172,3 +172,10 @@ async def analyze_document(file: UploadFile = File(...)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+@app.post("/send-email")
+async def send_email(email: str, analysis: str, document_type: str):
+    """Send analysis results via email"""
+    from backend.email_service import send_analysis_email
+    
+    result = send_analysis_email(email, analysis, document_type)
+    return result
