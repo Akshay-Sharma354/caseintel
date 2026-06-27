@@ -27,7 +27,7 @@ def send_analysis_email(recipient_email: str, analysis: str, document_type: str)
     """
     
     message = Mail(
-        from_email='noreply@caseintel.app',
+        from_email='akysha354@gmail.com',
         to_emails=recipient_email,
         subject=subject,
         html_content=html_content
