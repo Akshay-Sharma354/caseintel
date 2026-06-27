@@ -35,13 +35,9 @@ class EmailRequest(BaseModel):
 async def analyze(file: UploadFile = File(...)):
     try:
         contents = await file.read()
-        document_type, agent_used, analysis = orchestrator.process_document(contents)
+        result = orchestrator.process_document(contents)
         
-        return {
-            "document_type": document_type,
-            "agent_used": agent_used,
-            "analysis": analysis
-        }
+        return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
