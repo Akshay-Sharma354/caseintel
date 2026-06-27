@@ -8,6 +8,11 @@ function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState(null);
+  const [emailSuccess, setEmailSuccess] = useState(false);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -65,6 +70,43 @@ function App() {
       setError('Error analyzing document: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailInput.trim()) {
+      setEmailError('Please enter an email address');
+      return;
+    }
+
+    setEmailLoading(true);
+    setEmailError(null);
+    setEmailSuccess(false);
+
+    try {
+      const response = await fetch('https://caseintel-u3yl.onrender.com/send-email?email=' + encodeURIComponent(emailInput) + '&analysis=' + encodeURIComponent(result.analysis) + '&document_type=' + encodeURIComponent(result.document_type), {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send email');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setEmailSuccess(true);
+        setEmailInput('');
+        setTimeout(() => {
+          setShowEmailModal(false);
+          setEmailSuccess(false);
+        }, 2000);
+      } else {
+        setEmailError('Failed to send email: ' + data.error);
+      }
+    } catch (err) {
+      setEmailError('Error sending email: ' + err.message);
+    } finally {
+      setEmailLoading(false);
     }
   };
 
@@ -214,19 +256,59 @@ function App() {
                   </button>
                   <button
                     className="action-button secondary"
-                    onClick={() => alert('Share feature coming soon!')}
+                    onClick={() => setShowEmailModal(true)}
                   >
-                    Share
+                    📧 Share via Email
                   </button>
                 </div>
               </div>
+
+              {showEmailModal && (
+                <div className="email-modal-overlay" onClick={() => setShowEmailModal(false)}>
+                  <div className="email-modal" onClick={(e) => e.stopPropagation()}>
+                    <h3>Share Analysis via Email</h3>
+                    
+                    {emailSuccess ? (
+                      <div className="email-success">
+                        ✅ Email sent successfully!
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          type="email"
+                          placeholder="Enter email address"
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                          className="email-input"
+                        />
+                        {emailError && <div className="email-error">{emailError}</div>}
+                        <div className="email-modal-actions">
+                          <button
+                            className="email-send-button"
+                            onClick={handleSendEmail}
+                            disabled={emailLoading}
+                          >
+                            {emailLoading ? 'Sending...' : 'Send Email'}
+                          </button>
+                          <button
+                            className="email-cancel-button"
+                            onClick={() => setShowEmailModal(false)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
       </div>
 
       <footer className="footer">
-        <p>© 2024 CaseIntel. AI-powered legal analysis.</p>
+        <p>© 2026 CaseIntel. AI-powered legal analysis.</p>
       </footer>
     </div>
   );
