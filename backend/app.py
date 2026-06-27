@@ -11,6 +11,7 @@ import pdfplumber
 from docx import Document
 from PIL import Image
 import io
+import base64
 
 load_dotenv()
 
@@ -65,6 +66,8 @@ def extract_text_from_file(file_contents: bytes, filename: str) -> str:
             # If text extraction failed, try Vision API for scanned PDF
             doc = fitz.open(stream=file_contents, filetype="pdf")
             pix = doc[0].get_pixmap()
+            png_bytes = pix.tobytes("png")
+            png_b64 = base64.standard_b64encode(png_bytes).decode('utf-8')
             
             response = client.messages.create(
                 model="claude-opus-4-6",
@@ -78,7 +81,7 @@ def extract_text_from_file(file_contents: bytes, filename: str) -> str:
                                 "source": {
                                     "type": "base64",
                                     "media_type": "image/png",
-                                    "data": pix.tobytes("png")
+                                    "data": png_b64
                                 }
                             },
                             {
@@ -96,7 +99,7 @@ def extract_text_from_file(file_contents: bytes, filename: str) -> str:
             img = Image.open(io.BytesIO(file_contents))
             img_bytes = io.BytesIO()
             img.save(img_bytes, format='PNG')
-            img_b64 = img_bytes.getvalue()
+            png_b64 = base64.standard_b64encode(img_bytes.getvalue()).decode('utf-8')
             
             response = client.messages.create(
                 model="claude-opus-4-6",
@@ -110,7 +113,7 @@ def extract_text_from_file(file_contents: bytes, filename: str) -> str:
                                 "source": {
                                     "type": "base64",
                                     "media_type": "image/png",
-                                    "data": img_b64
+                                    "data": png_b64
                                 }
                             },
                             {
