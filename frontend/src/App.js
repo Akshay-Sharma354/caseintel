@@ -1,3 +1,8 @@
+PERFECT!!! ✅ Now for App.js!
+
+🔧 STEP 2: App.js (Copy Feedback + Better Results)
+COPY THIS ENTIRE CODE:
+bashcat > ~/Desktop/caseintel/frontend/src/App.js << 'EOF'
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import './App.css';
@@ -13,6 +18,7 @@ function App() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -71,6 +77,12 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(result.analysis);
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 1500);
   };
 
   const handleSendEmail = async () => {
@@ -255,11 +267,10 @@ function App() {
                 <div className="result-actions">
                   <button
                     className="action-button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(result.analysis);
-                      alert('Copied to clipboard!');
-                    }}
+                    onClick={handleCopy}
+                    style={{ position: 'relative' }}
                   >
+                    {copyFeedback && <span className="copy-feedback">✓ Copied!</span>}
                     Copy
                   </button>
                   <button
