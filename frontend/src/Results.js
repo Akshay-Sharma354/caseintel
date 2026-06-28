@@ -1,12 +1,3 @@
-PERFECT!!! ✅ Let's build the complete /results page!
-
-📋 STEP 1: Install React Router
-bashcd ~/Desktop/caseintel/frontend
-npm install react-router-dom
-Press Enter! ✅
-
-🔧 STEP 2: Create Results.js Component
-bashcat > ~/Desktop/caseintel/frontend/src/Results.js << 'EOF'
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import './Results.css';
@@ -22,7 +13,7 @@ function Results() {
           <h2>No Analysis Found</h2>
           <p>Please upload a document and analyze it first.</p>
           <button className="back-button" onClick={() => window.history.back()}>
-            ← Back to Upload
+            Back to Upload
           </button>
         </div>
       </div>
@@ -42,7 +33,7 @@ function Results() {
     <div className="results-page">
       <div className="results-header-bar">
         <button className="back-button" onClick={() => window.history.back()}>
-          ← Back to Upload
+          Back to Upload
         </button>
         <div className="results-title-section">
           <span className="result-icon">{getAgentIcon()}</span>
@@ -55,8 +46,6 @@ function Results() {
 
       <div className="results-main">
         <div className="results-content">
-          
-          {/* Card 1: Legal Disclaimer */}
           <div className="results-card disclaimer-card">
             <div style={{
               background: '#ffe0e0',
@@ -70,7 +59,6 @@ function Results() {
             </div>
           </div>
 
-          {/* Card 2: Full Analysis */}
           <div className="results-card analysis-card">
             <h2 className="card-title">📋 Detailed Analysis</h2>
             <div className="markdown-content">
@@ -78,7 +66,6 @@ function Results() {
             </div>
           </div>
 
-          {/* Card 3: Action Items */}
           <div className="results-card action-card">
             <h2 className="card-title">⚡ Next Steps</h2>
             <div className="action-content">
@@ -95,7 +82,6 @@ function Results() {
             </div>
           </div>
 
-          {/* Card 4: Share & Copy Actions */}
           <div className="results-card actions-card">
             <h2 className="card-title">🔗 Share & Export</h2>
             <div className="result-actions">
@@ -105,7 +91,6 @@ function Results() {
                   navigator.clipboard.writeText(result.analysis);
                   alert('Analysis copied to clipboard!');
                 }}
-                style={{ position: 'relative' }}
               >
                 📋 Copy Analysis
               </button>
@@ -139,7 +124,6 @@ function Results() {
               </button>
             </div>
           </div>
-
         </div>
       </div>
 
