@@ -1,7 +1,7 @@
-🚨 ESLINT ERROR!
-nextSteps is extracted but never used!
+🚨 EMOJI BREAKING HEREDOC!
+The emojis in the code are corrupting the file transfer!
 
-🔧 FIX: Remove unused variable
+🔧 FIX: Remove emojis from code (simpler version)
 bashcat > ~/Desktop/caseintel/frontend/src/Results.js << 'EOF'
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -36,7 +36,6 @@ function Results() {
     return '🤖';
   };
 
-  // Extract key sections from markdown analysis
   const extractSection = (text, sectionName) => {
     const patterns = [
       new RegExp(`#{1,3}\\s*${sectionName}[^#]*?(?=#{1,3}\\s|$)`, 'is'),
@@ -88,7 +87,6 @@ function Results() {
     );
   };
 
-  // Extract all key sections
   const analysis = result.analysis || '';
   const criticalIssues = extractSection(analysis, 'Critical Issues');
   const recommendations = extractSection(analysis, 'Recommendations');
@@ -100,7 +98,7 @@ function Results() {
     <div className="results-page">
       <div className="results-header-bar">
         <button className="back-button" onClick={() => window.history.back()}>
-          ← Back to Upload
+          Back to Upload
         </button>
         <div className="results-title-section">
           <span className="result-icon">{getAgentIcon()}</span>
@@ -114,7 +112,6 @@ function Results() {
       <div className="results-main">
         <div className="results-content">
           
-          {/* Legal Disclaimer */}
           <div className="results-card disclaimer-card">
             <div style={{
               background: '#ffe0e0',
@@ -124,47 +121,45 @@ function Results() {
               color: '#991b1b',
               lineHeight: '1.5'
             }}>
-              <strong>⚠️ Legal Disclaimer:</strong> This analysis is for educational purposes only and based on US legal standards. This is NOT legal advice. Please consult a qualified attorney in your jurisdiction before making any legal decisions.
+              <strong>Legal Disclaimer:</strong> This analysis is for educational purposes only and based on US legal standards. This is NOT legal advice. Please consult a qualified attorney in your jurisdiction before making any legal decisions.
             </div>
           </div>
 
-          {/* Key Sections - Expandable */}
           <KeySection 
             title="Critical Issues" 
-            icon="🚨" 
+            icon="!" 
             content={criticalIssues}
             sectionKey="criticalIssues"
           />
 
           <KeySection 
             title="Potential Outcomes" 
-            icon="📊" 
+            icon="*" 
             content={potentialOutcomes}
             sectionKey="potentialOutcomes"
           />
 
           <KeySection 
             title="Recommendations" 
-            icon="✅" 
+            icon="+" 
             content={recommendations}
             sectionKey="recommendations"
           />
 
           <KeySection 
-            title="Litigation & Settlement Strategy" 
-            icon="⚖️" 
+            title="Litigation & Settlement" 
+            icon="=" 
             content={settlement || litigationRisk}
             sectionKey="settlement"
           />
 
-          {/* Full Analysis */}
           <div className="results-card analysis-card">
             <button
               className="section-toggle"
               onClick={() => toggleSection('fullAnalysis')}
             >
-              <span className="toggle-icon">{expandedSections.fullAnalysis ? '▼' : '▶'}</span>
-              <span className="section-title">📋 Full Detailed Analysis</span>
+              <span className="toggle-icon">{expandedSections.fullAnalysis ? 'V' : '>'}</span>
+              <span className="section-title">Full Detailed Analysis</span>
             </button>
             
             {expandedSections.fullAnalysis && (
@@ -176,9 +171,8 @@ function Results() {
             )}
           </div>
 
-          {/* Share & Copy Actions */}
           <div className="results-card actions-card">
-            <h2 className="card-title">🔗 Share & Export</h2>
+            <h2 className="card-title">Share & Export</h2>
             <div className="result-actions">
               <button
                 className="action-button"
@@ -187,7 +181,7 @@ function Results() {
                   alert('Analysis copied to clipboard!');
                 }}
               >
-                📋 Copy Analysis
+                Copy Analysis
               </button>
               <button
                 className="action-button secondary"
@@ -215,7 +209,7 @@ function Results() {
                   }
                 }}
               >
-                📧 Share via Email
+                Share via Email
               </button>
             </div>
           </div>
@@ -224,7 +218,7 @@ function Results() {
       </div>
 
       <footer className="results-footer">
-        <p>© 2026 CaseIntel. AI-powered legal analysis.</p>
+        <p>2026 CaseIntel. AI-powered legal analysis.</p>
       </footer>
     </div>
   );
