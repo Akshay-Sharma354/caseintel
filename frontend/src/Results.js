@@ -1,8 +1,3 @@
-🚨 EMOJI BREAKING HEREDOC!
-The emojis in the code are corrupting the file transfer!
-
-🔧 FIX: Remove emojis from code (simpler version)
-bashcat > ~/Desktop/caseintel/frontend/src/Results.js << 'EOF'
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -19,7 +14,8 @@ function Results() {
         <div className="results-content">
           <h2>No Analysis Found</h2>
           <p>Please upload a document and analyze it first.</p>
-          <button className="back-button" onClick={() => window.history.back()}>
+          <button className="back-button" onClick={() => 
+window.history.back()}>
             Back to Upload
           </button>
         </div>
@@ -36,24 +32,6 @@ function Results() {
     return '🤖';
   };
 
-  const extractSection = (text, sectionName) => {
-    const patterns = [
-      new RegExp(`#{1,3}\\s*${sectionName}[^#]*?(?=#{1,3}\\s|$)`, 'is'),
-      new RegExp(`\\*\\*${sectionName}\\*\\*[^#]*?(?=#{1,3}\\s|\\*\\*|$)`, 'is'),
-    ];
-
-    for (let pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) {
-        return match[0]
-          .replace(new RegExp(`#{1,3}\\s*${sectionName}`, 'i'), '')
-          .replace(/\*\*.*?\*\*/g, '')
-          .trim();
-      }
-    }
-    return null;
-  };
-
   const toggleSection = (sectionKey) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -61,43 +39,11 @@ function Results() {
     }));
   };
 
-  const KeySection = ({ title, icon, content, sectionKey }) => {
-    const isExpanded = expandedSections[sectionKey];
-    
-    if (!content) return null;
-
-    return (
-      <div className="results-card key-section-card">
-        <button
-          className="section-toggle"
-          onClick={() => toggleSection(sectionKey)}
-        >
-          <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
-          <span className="section-title">{icon} {title}</span>
-        </button>
-        
-        {isExpanded && (
-          <div className="section-content">
-            <div className="markdown-content">
-              <ReactMarkdown>{content}</ReactMarkdown>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const analysis = result.analysis || '';
-  const criticalIssues = extractSection(analysis, 'Critical Issues');
-  const recommendations = extractSection(analysis, 'Recommendations');
-  const potentialOutcomes = extractSection(analysis, 'Potential Outcomes');
-  const litigationRisk = extractSection(analysis, 'Litigation Risk');
-  const settlement = extractSection(analysis, 'Settlement');
-
   return (
     <div className="results-page">
       <div className="results-header-bar">
-        <button className="back-button" onClick={() => window.history.back()}>
+        <button className="back-button" onClick={() => 
+window.history.back()}>
           Back to Upload
         </button>
         <div className="results-title-section">
@@ -121,45 +67,21 @@ function Results() {
               color: '#991b1b',
               lineHeight: '1.5'
             }}>
-              <strong>Legal Disclaimer:</strong> This analysis is for educational purposes only and based on US legal standards. This is NOT legal advice. Please consult a qualified attorney in your jurisdiction before making any legal decisions.
+              <strong>Legal Disclaimer:</strong> This analysis is for 
+educational purposes only and based on US legal standards. This is NOT 
+legal advice. Please consult a qualified attorney in your jurisdiction 
+before making any legal decisions.
             </div>
           </div>
-
-          <KeySection 
-            title="Critical Issues" 
-            icon="!" 
-            content={criticalIssues}
-            sectionKey="criticalIssues"
-          />
-
-          <KeySection 
-            title="Potential Outcomes" 
-            icon="*" 
-            content={potentialOutcomes}
-            sectionKey="potentialOutcomes"
-          />
-
-          <KeySection 
-            title="Recommendations" 
-            icon="+" 
-            content={recommendations}
-            sectionKey="recommendations"
-          />
-
-          <KeySection 
-            title="Litigation & Settlement" 
-            icon="=" 
-            content={settlement || litigationRisk}
-            sectionKey="settlement"
-          />
 
           <div className="results-card analysis-card">
             <button
               className="section-toggle"
               onClick={() => toggleSection('fullAnalysis')}
             >
-              <span className="toggle-icon">{expandedSections.fullAnalysis ? 'V' : '>'}</span>
-              <span className="section-title">Full Detailed Analysis</span>
+              <span className="toggle-icon">{expandedSections.fullAnalysis 
+? 'v' : '>'}</span>
+              <span className="section-title">Full Analysis</span>
             </button>
             
             {expandedSections.fullAnalysis && (
@@ -178,7 +100,7 @@ function Results() {
                 className="action-button"
                 onClick={() => {
                   navigator.clipboard.writeText(result.analysis);
-                  alert('Analysis copied to clipboard!');
+                  alert('Analysis copied!');
                 }}
               >
                 Copy Analysis
@@ -186,9 +108,10 @@ function Results() {
               <button
                 className="action-button secondary"
                 onClick={() => {
-                  const email = prompt('Enter email address to send analysis:');
+                  const email = prompt('Enter email:');
                   if (email) {
-                    fetch('https://caseintel-u3yl.onrender.com/send-email', {
+                    
+fetch('https://caseintel-u3yl.onrender.com/send-email', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
@@ -200,12 +123,12 @@ function Results() {
                     .then(res => res.json())
                     .then(data => {
                       if (data.success) {
-                        alert('Email sent successfully!');
+                        alert('Email sent!');
                       } else {
-                        alert('Failed to send email');
+                        alert('Failed');
                       }
                     })
-                    .catch(err => alert('Error sending email'));
+                    .catch(err => alert('Error'));
                   }
                 }}
               >
@@ -218,7 +141,7 @@ function Results() {
       </div>
 
       <footer className="results-footer">
-        <p>2026 CaseIntel. AI-powered legal analysis.</p>
+        <p>2026 CaseIntel</p>
       </footer>
     </div>
   );
