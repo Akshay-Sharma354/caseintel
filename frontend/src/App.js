@@ -49,16 +49,20 @@ function App() {
     }
     setLoading(true);
     setError(null);
+
     try {
       const formData = new FormData();
       formData.append('file', file);
+
       const response = await fetch('https://caseintel-u3yl.onrender.com/analyze', {
         method: 'POST',
         body: formData,
       });
+
       if (!response.ok) {
         throw new Error('Failed to analyze document');
       }
+
       const data = await response.json();
       setResult(data);
     } catch (err) {
@@ -82,6 +86,7 @@ function App() {
     setEmailLoading(true);
     setEmailError(null);
     setEmailSuccess(false);
+
     try {
       const response = await fetch('https://caseintel-u3yl.onrender.com/send-email', {
         method: 'POST',
@@ -92,9 +97,11 @@ function App() {
           document_type: result.document_type,
         }),
       });
+
       if (!response.ok) {
         throw new Error('Failed to send email');
       }
+
       const data = await response.json();
       if (data.success) {
         setEmailSuccess(true);
@@ -242,6 +249,18 @@ function App() {
                 </div>
               </div>
 
+              <div style={{
+                background: '#ffe0e0',
+                padding: '12px',
+                borderRadius: '6px',
+                marginBottom: '20px',
+                fontSize: '12px',
+                color: '#991b1b',
+                lineHeight: '1.5'
+              }}>
+                <strong>⚠️ Legal Disclaimer:</strong> This analysis is for educational purposes only and based on US legal standards. This is NOT legal advice. Please consult a qualified attorney in your jurisdiction before making any legal decisions.
+              </div>
+
               <div className="results-card">
                 <div className="markdown-content">
                   <ReactMarkdown>{result.analysis}</ReactMarkdown>
@@ -270,7 +289,9 @@ function App() {
                   <div className="email-modal" onClick={(e) => e.stopPropagation()}>
                     <h3>Share Analysis via Email</h3>
                     {emailSuccess ? (
-                      <div className="email-success">✅ Email sent successfully!</div>
+                      <div className="email-success">
+                        ✅ Email sent successfully!
+                      </div>
                     ) : (
                       <>
                         <input
