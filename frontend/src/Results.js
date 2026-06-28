@@ -1,3 +1,8 @@
+🚨 ESLINT ERROR!
+nextSteps is extracted but never used!
+
+🔧 FIX: Remove unused variable
+bashcat > ~/Desktop/caseintel/frontend/src/Results.js << 'EOF'
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -87,7 +92,6 @@ function Results() {
   const analysis = result.analysis || '';
   const criticalIssues = extractSection(analysis, 'Critical Issues');
   const recommendations = extractSection(analysis, 'Recommendations');
-  const nextSteps = extractSection(analysis, 'Next Steps');
   const potentialOutcomes = extractSection(analysis, 'Potential Outcomes');
   const litigationRisk = extractSection(analysis, 'Litigation Risk');
   const settlement = extractSection(analysis, 'Settlement');
