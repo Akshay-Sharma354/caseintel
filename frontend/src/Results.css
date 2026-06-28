@@ -1,0 +1,263 @@
+.results-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.results-header-bar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  padding: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: var(--text-gray);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.back-button:hover {
+  background: var(--bg-light);
+  color: var(--text-dark);
+}
+
+.results-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.result-icon {
+  font-size: 32px;
+}
+
+.results-title-section h1 {
+  color: var(--text-dark);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.agent-label {
+  color: var(--text-gray);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.results-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.results-content {
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.results-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 28px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-title {
+  color: var(--text-dark);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.disclaimer-card {
+  background: #ffe0e0;
+  border: 1px solid #fecaca;
+  padding: 16px;
+}
+
+.analysis-card {
+  min-height: 300px;
+}
+
+.markdown-content {
+  color: var(--text-gray);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.markdown-content h2 {
+  color: var(--text-dark);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 20px 0 12px;
+}
+
+.markdown-content h3 {
+  color: var(--text-dark);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 12px 0;
+  padding-left: 20px;
+}
+
+.markdown-content li {
+  color: var(--text-gray);
+  margin: 6px 0;
+}
+
+.markdown-content strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+.markdown-content th {
+  background: var(--bg-light);
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.markdown-content td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-gray);
+}
+
+.markdown-content tbody tr:hover {
+  background: var(--bg-light);
+}
+
+.action-content {
+  color: var(--text-gray);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.action-content ul {
+  margin: 12px 0;
+  padding-left: 20px;
+}
+
+.action-content li {
+  margin: 6px 0;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.action-button {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--primary);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.action-button.secondary {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  color: var(--text-dark);
+}
+
+.action-button.secondary:hover {
+  background: var(--bg-light);
+}
+
+.results-footer {
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-light);
+  color: var(--text-gray);
+  font-size: 13px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .results-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .results-title-section {
+    width: 100%;
+  }
+
+  .results-content {
+    padding: 0;
+  }
+
+  .results-card {
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+
+  .action-button {
+    width: 100%;
+  }
+}
