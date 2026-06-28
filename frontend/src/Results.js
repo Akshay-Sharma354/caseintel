@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import './Results.css';
@@ -6,6 +6,7 @@ import './Results.css';
 function Results() {
   const location = useLocation();
   const result = location.state?.result;
+  const [expandedSections, setExpandedSections] = useState({});
 
   if (!result) {
     return (
@@ -30,11 +31,72 @@ function Results() {
     return '🤖';
   };
 
+  // Extract key sections from markdown analysis
+  const extractSection = (text, sectionName) => {
+    const patterns = [
+      new RegExp(`#{1,3}\\s*${sectionName}[^#]*?(?=#{1,3}\\s|$)`, 'is'),
+      new RegExp(`\\*\\*${sectionName}\\*\\*[^#]*?(?=#{1,3}\\s|\\*\\*|$)`, 'is'),
+    ];
+
+    for (let pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[0]
+          .replace(new RegExp(`#{1,3}\\s*${sectionName}`, 'i'), '')
+          .replace(/\*\*.*?\*\*/g, '')
+          .trim();
+      }
+    }
+    return null;
+  };
+
+  const toggleSection = (sectionKey) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
+
+  const KeySection = ({ title, icon, content, sectionKey }) => {
+    const isExpanded = expandedSections[sectionKey];
+    
+    if (!content) return null;
+
+    return (
+      <div className="results-card key-section-card">
+        <button
+          className="section-toggle"
+          onClick={() => toggleSection(sectionKey)}
+        >
+          <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
+          <span className="section-title">{icon} {title}</span>
+        </button>
+        
+        {isExpanded && (
+          <div className="section-content">
+            <div className="markdown-content">
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Extract all key sections
+  const analysis = result.analysis || '';
+  const criticalIssues = extractSection(analysis, 'Critical Issues');
+  const recommendations = extractSection(analysis, 'Recommendations');
+  const nextSteps = extractSection(analysis, 'Next Steps');
+  const potentialOutcomes = extractSection(analysis, 'Potential Outcomes');
+  const litigationRisk = extractSection(analysis, 'Litigation Risk');
+  const settlement = extractSection(analysis, 'Settlement');
+
   return (
     <div className="results-page">
       <div className="results-header-bar">
         <button className="back-button" onClick={() => window.history.back()}>
-          Back to Upload
+          ← Back to Upload
         </button>
         <div className="results-title-section">
           <span className="result-icon">{getAgentIcon()}</span>
@@ -47,6 +109,8 @@ function Results() {
 
       <div className="results-main">
         <div className="results-content">
+          
+          {/* Legal Disclaimer */}
           <div className="results-card disclaimer-card">
             <div style={{
               background: '#ffe0e0',
@@ -60,29 +124,55 @@ function Results() {
             </div>
           </div>
 
+          {/* Key Sections - Expandable */}
+          <KeySection 
+            title="Critical Issues" 
+            icon="🚨" 
+            content={criticalIssues}
+            sectionKey="criticalIssues"
+          />
+
+          <KeySection 
+            title="Potential Outcomes" 
+            icon="📊" 
+            content={potentialOutcomes}
+            sectionKey="potentialOutcomes"
+          />
+
+          <KeySection 
+            title="Recommendations" 
+            icon="✅" 
+            content={recommendations}
+            sectionKey="recommendations"
+          />
+
+          <KeySection 
+            title="Litigation & Settlement Strategy" 
+            icon="⚖️" 
+            content={settlement || litigationRisk}
+            sectionKey="settlement"
+          />
+
+          {/* Full Analysis */}
           <div className="results-card analysis-card">
-            <h2 className="card-title">📋 Detailed Analysis</h2>
-            <div className="markdown-content">
-              <ReactMarkdown>{result.analysis}</ReactMarkdown>
-            </div>
+            <button
+              className="section-toggle"
+              onClick={() => toggleSection('fullAnalysis')}
+            >
+              <span className="toggle-icon">{expandedSections.fullAnalysis ? '▼' : '▶'}</span>
+              <span className="section-title">📋 Full Detailed Analysis</span>
+            </button>
+            
+            {expandedSections.fullAnalysis && (
+              <div className="section-content">
+                <div className="markdown-content">
+                  <ReactMarkdown>{result.analysis}</ReactMarkdown>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="results-card action-card">
-            <h2 className="card-title">⚡ Next Steps</h2>
-            <div className="action-content">
-              <p>Review the analysis above for:</p>
-              <ul>
-                <li>Critical issues and risks</li>
-                <li>Potential outcomes and scenarios</li>
-                <li>Recommended next steps</li>
-                <li>Settlement or litigation strategy</li>
-              </ul>
-              <p style={{ marginTop: '16px', fontStyle: 'italic', color: '#6b7280' }}>
-                Share this analysis with your legal team or attorney for professional guidance.
-              </p>
-            </div>
-          </div>
-
+          {/* Share & Copy Actions */}
           <div className="results-card actions-card">
             <h2 className="card-title">🔗 Share & Export</h2>
             <div className="result-actions">
@@ -125,6 +215,7 @@ function Results() {
               </button>
             </div>
           </div>
+
         </div>
       </div>
 
