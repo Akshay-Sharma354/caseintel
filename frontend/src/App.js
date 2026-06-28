@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
 import Results from './Results';
 import './App.css';
 
@@ -10,11 +9,6 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
-  const [emailLoading, setEmailLoading] = useState(false);
-  const [emailError, setEmailError] = useState(null);
-  const [emailSuccess, setEmailSuccess] = useState(false);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -70,48 +64,6 @@ function Home() {
       setError('Error analyzing document: ' + err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSendEmail = async () => {
-    if (!emailInput.trim()) {
-      setEmailError('Please enter an email address');
-      return;
-    }
-    setEmailLoading(true);
-    setEmailError(null);
-    setEmailSuccess(false);
-
-    try {
-      const response = await fetch('https://caseintel-u3yl.onrender.com/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: emailInput,
-          analysis: 'Analysis placeholder',
-          document_type: 'document',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send email');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setEmailSuccess(true);
-        setEmailInput('');
-        setTimeout(() => {
-          setShowEmailModal(false);
-          setEmailSuccess(false);
-        }, 2000);
-      } else {
-        setEmailError('Failed to send email: ' + data.error);
-      }
-    } catch (err) {
-      setEmailError('Error sending email: ' + err.message);
-    } finally {
-      setEmailLoading(false);
     }
   };
 
