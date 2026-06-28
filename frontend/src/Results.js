@@ -1,9 +1,10 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import './Results.css';
 
 function Results() {
-  const location = window.location;
+  const location = useLocation();
   const result = location.state?.result;
 
   if (!result) {
