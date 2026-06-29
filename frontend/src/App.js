@@ -49,7 +49,9 @@ function Home() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('https://caseintel-u3yl.onrender.com/analyze', {
+      const response = await 
+fetch('http://https://caseintel-u3yl.onrender.com0/analyze', 
+{
         method: 'POST',
         body: formData,
       });
