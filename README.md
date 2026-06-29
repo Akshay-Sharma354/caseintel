@@ -126,4 +126,4 @@ Visit http://localhost:3000
 **GitHub:** https://github.com/Akshay-Sharma354/caseintel
 **Demo:** https://caseintel-rho.vercel.app/
 
-Built by **Arjun Sharma** — AI Engineer, Delhi
+Built by **Akshay Sharma** — AI Engineer, Noida
